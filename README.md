@@ -16,8 +16,8 @@ for Arabic speaking users.
 
 ## Authors
 
-Mohamed Badawy
-Eslam Ismael
+* Mohamed Badawy
+* Eslam Ismael
 
 ## License
 
