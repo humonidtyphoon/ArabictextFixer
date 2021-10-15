@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			#textDiv {
+				display: block;
+				overflow: hidden;
+				resize: none;
+			}
+		</style>
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-209894057-1"></script>
+		<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-209894057-1');
+		</script>
+
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, shrink-to-fit=no"
+		/>
+		<title>TextFixer</title>
+		<link rel="shortcut icon" type="image/jpg" href="images/icon.jpg"/>
+
+		<script src="/js/jquery.js"></script>
+		<meta property="og:type" content="website" />
+		<meta
+			property="og:description"
+			content="TextFixer is a tool to fix jumbled Arabic and English text."
+		/>
+		<meta
+			name="twitter:description"
+			content="TextFixer is a tool to fix jumbled Arabic and English text."
+		/>
+		<meta
+			name="twitter:image"
+			content="https://textfixer.herokuapp.com/images/ogImage.jpg"
+		/>
+		<meta 
+		name="twitter:card" 
+		content="summary"
+		>
+		<!-- <meta
+		 name="twitter:site" 
+		 content="@site_twitter_handle"
+		>
+		 -->
+		<meta
+		name="twitter:title"
+		content="TextFixer" 
+		/>
+
+		<meta
+			name="description"
+			content="TextFixer is a tool to fix jumbled Arabic and English text."
+		/>
+		<meta
+			property="og:image"
+			content="https://textfixer.herokuapp.com/images/ogImage.jpg"
+		/>
+		<meta property="og:title" content="TextFixer" />
+		
+		<!-- <script data-ad-client="ca-pub-7983515489844139" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
+		<link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css" />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic"
+		/>
+		<link rel="stylesheet" href="assets/fonts/font-awesome.min.css" />
+		<link rel="stylesheet" href="assets/fonts/simple-line-icons.min.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css"
+		/>
+		<link rel="stylesheet" href="assets/css/untitled-1.css" />
+		<link rel="stylesheet" href="assets/css/untitled.css" />
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+	</head>
+
+	<body>
+        <script>
+			textarea = document.querySelector("#textDiv");
+			//textarea.addEventListener("input", autoResize, false);
+
+			function autoResize() {
+				this.style.height = "auto";
+				this.style.height = this.scrollHeight + "px";
+			}
+		</script>
+
+		<script>
+			//ghost function it isn't used for now
+			function getResolution() {
+				alert(
+					"Your screen resolution is: " +
+						window.innerWidth +
+						"x" +
+						window.innerHeight
+				);
+			}
+		</script>
+
+		<!-- <button type="button" onclick="getResolution();">Get Resolution</button> -->
+		<script>
+			window.linebreakCounter = 0;
+			// if (document.getElementById("inputt").value == "") {
+			// }
+			function checkRtl(event, character) {
+				var RTL = [
+					"أ",
+					"إ",
+					"ش",
+					"س",
+					"ا",
+					"ب",
+					"پ",
+					"ت",
+					"ث",
+					"ج",
+					"چ",
+					"ح",
+					"خ",
+					"د",
+					"ذ",
+					"ر",
+					"ز",
+					"ژ",
+					"ص",
+					"ض",
+					"ط",
+					"ظ",
+					"ع",
+					"غ",
+					"ف",
+					"ق",
+					"ک",
+					"گ",
+					"ل",
+					"م",
+					"ن",
+					"و",
+					"ه",
+					"ی",
+				];
+
+				const textEl = document.getElementById("inputt");
+				const textDiv = document.getElementById("textDiv");
+
+				const arabicRegex = /[\u0600-\u06FF]/;
+				// create lines by splitting using \n regex
+				let lines = textEl.value.trim().split(/\n/g);
+
+				// map over the lines and return a new line re-arranged words that take into account arabic and english mix
+				lines = lines.map((line, index) => {
+					let words = line
+						.split(/(\s+)/)
+						.filter((word) => word.trim().length > 0);
+					let newWords = [];
+					// this will indicate whether we reverse the words or not
+					let startsWithArabic = false;
+					if (words.length > 0) {
+						// we assign all arabic words to iArabic before we encounter an english word
+						//for example (انا عايز اشتري fan) in which case (iArabic = "انا عايز اشتري") and will be treated as one element of the array
+						let iArabic = "";
+						// we assign all other words to iElse before we encounter an arabic word
+						//for example (I want to buy a مروحة) in which case (iElse = "I want to buy a") and will be treated as one element of the array
+						let iElse = "";
+						startsWithArabic = words[0];
+						// what happens here is that we keep concatenating words of arabic that are following each other into iArabic but we don't push into the array
+						// however, we check if iElse length is > 0, in which case, we need to push the iElse content as the next element in the array
+						// we then do the same for iElse, we keep concatenating words of other languages that are following each other into iElse, but we don't push into the array
+						// the idea is that we take a sentance like this (Mohamed Badawy كان عايز يجيب fan للكمبيوتر بتاعه) and in the first two iterations we will assign "Mohamed" and then "Badawy"
+						// into iElse, then we will encounter "كان عايز تجيب" which in the next 3 iterations the 3 words will be concatenated into iArabic
+						// at first, we will push iElse in the array and it will look like this ["Mohamed Badawy"]
+						// after we assign iArabic "كان عايز يجيب" we will encounter the word "fan", in which case it will be assigned to iElse
+						// and in this instance we will push the iArabic to the array, and it will look like ["Mohamed Badawy", "كان عايز يجيب"]
+						// and so on until we have an array that looks like this ["Mohamed Badawy", "كان عايز يجيب", "fan", "للكمبيوتر بتاعه"], and so when we do a reverse
+						// the words won't be messed up and look like this "بتاعه للكمبيوتر fan يجيب عايز كان Badawy Mohamed" as the reversed parts of the sentance are the ones following different language
+						for (let i = 0; i < words.length; i++) {
+							if (arabicRegex.test(words[i])) {
+								iArabic = `${iArabic} ${words[i]}`;
+								if (iElse.length > 0) {
+									newWords.push(iElse);
+									iElse = "";
+								}
+							} else {
+								if (iArabic.length > 0) {
+									newWords.push(iArabic);
+									iArabic = "";
+								}
+								iElse = `${iElse} ${words[i]}`;
+							}
+						}
+						if (iArabic.trim().length > 0) {
+							newWords.push(iArabic);
+						} else if (iElse.trim().length > 0) {
+							newWords.push(iElse);
+						}
+					}
+
+					return startsWithArabic
+						? newWords.join(" ")
+						: newWords.reverse().join(" ");
+				});
+				//custom made direction setter
+				if (arabicRegex.test(textEl.value)) {
+					textDiv.setAttribute("dir", "rtl");
+				} else {
+					textDiv.setAttribute("dir", "ltr");
+				}
+				console.log(textEl.value);
+				textDiv.value = lines.join("\n");
+
+				function newln(event) {
+					if (event.keyCode == 13 && event.shiftKey) {
+						linebreakCounter++;
+						var text = "text";
+						var txt = document.getElementById("textDiv");
+					}
+				}
+			}
+            function copy() {
+				// copy function
+            let textarea = document.getElementById("textDiv");
+			if(textarea.value != "")
+            {
+				//console.log("1");
+				textarea.select();
+            	document.execCommand("copy");
+			}
+            }
+           
+		</script>
+
+		<script>
+			$(document).ready(function(){
+				// to show popever in second textarea if it's not empty		
+				$('#inputt').change(function () {
+            		if (($('#inputt').val()).length > 0) {
+						$('.copyIcon').popover().click(function () {
+						setTimeout(function () {
+						$('.copyIcon').popover('hide');
+					}, 650);
+					});
+					
+            		} 
+        });
+			});
+		</script>
+		<a id="top"></a>
+		<nav class="navbar navbar-light navbar-expand bg-light navigation-clean">
+			<div class="container">
+				<a class="navbar-brand" href="#">TextFixer</a
+				><button
+					data-toggle="collapse"
+					class="navbar-toggler"
+					data-target="#navcol-1"
+				></button>
+				<div class="collapse navbar-collapse" id="navcol-1"></div>
+			</div>
+		</nav>
+		<header
+			class="text-center text-white masthead"
+			style="
+				background: url('assets/img/bg-masthead.jpg') no-repeat center center;
+				background-size: cover;
+			"
+		>
+			<div class="overlay"></div>
+			<div class="container">
+				<div class="row">
+					<div class="col-xl-9 mx-auto">
+						<h1 class="mb-5">
+							Fix Broken Arabic and English Text on Any Platform.
+						</h1>
+					</div>
+					<div class="col-md-10 col-lg-8 col-xl-6 offset-xl-3 mx-auto">
+						<form>
+							<div class="form-row" style="width: 100%">
+								<div
+									class="col-12 col-md-9 col-xl-7 offset-xl-0 mb-2 mb-md-0"
+									style="width: 734px; padding-left: 5px"
+								>
+									<textarea
+										class="
+											border
+											rounded
+											form-control
+											flex-column
+											align-items-stretch
+											text-area
+										"
+										id="inputt"
+										oninput="checkRtl()"
+										dir="auto"
+										placeholder="Enter your awesome text here."
+										style="
+											max-width: 100%;
+											height: 135px;
+											border-style: none;
+											padding-top: 1px;
+											width: 100%;
+											box-shadow: 0px 0px 8px 0px var(--blue);
+											padding-right: 28px;
+											padding-bottom: 2px;
+											padding-left: 11px;
+											overflow-y: scroll;
+										"
+									></textarea>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="col" style="padding-right: 23px">
+						<textarea
+							class="border rounded text-area"
+							id="textDiv"
+							placeholder="Your fixed text will be copied here!"
+							style="
+								max-width: 100%;
+								height: 135px;
+								border-style: none;
+								padding-top: 1px;
+								width: 100%;
+								box-shadow: 0px 0px 8px 0px var(--blue);
+								padding-left: 11px;
+								padding-right: 28px;
+								overflow-y: scroll;
+								
+							"
+						></textarea>
+						<div class="icon-container">
+							<i
+                                onclick="copy()"
+                                data-toggle="popover" 
+                                data-placement="bottom" 
+                                data-original-title="" 
+                                data-content="Copied!" 
+                                aria-describedby="tooltip"
+								class="fa fa-copy copyIcon"
+								style="
+									background: var(--white);
+									color: rgb(0, 0, 0);
+									padding: 0px;
+									margin: 0px;
+									margin-bottom: -11px;
+									margin-left: -11px;
+									padding-top: -10px;
+									padding-left: -3px;
+									padding-right: 4px;
+									margin-right: 0px;
+									margin-top: 0px;
+									padding-bottom: -1px;
+								"
+								
+							></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</header>
+		<section class="text-center bg-light features-icons">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-4">
+						<div class="mx-auto features-icons-item mb-5 mb-lg-0 mb-lg-3">
+							<div class="d-flex features-icons-icon">
+								<i
+									class="icon-screen-desktop m-auto text-primary"
+									data-bss-hover-animate="pulse"
+								></i>
+							</div>
+							<h3>Universal</h3>
+							<p class="lead mb-0">
+								Works on all social media websites and all devices!
+							</p>
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="mx-auto features-icons-item mb-5 mb-lg-0 mb-lg-3">
+							<div class="d-flex features-icons-icon">
+								<i
+									class="icon-layers m-auto text-primary"
+									data-bss-hover-animate="pulse"
+								></i>
+							</div>
+							<h3>Efficient Algorithms&nbsp;</h3>
+							<p class="lead mb-0">
+								Top-notch algorithms are specifically designed for every
+								website!
+							</p>
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="mx-auto features-icons-item mb-5 mb-lg-0 mb-lg-3">
+							<div class="d-flex features-icons-icon">
+								<i
+									class="icon-check m-auto text-primary"
+									data-bss-hover-animate="pulse"
+								></i>
+							</div>
+							<h3>Easy to Use</h3>
+							<p class="lead mb-0">
+								How to use it?<br />just copy and paste your awesome text!
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+		<section class="showcase">
+			<div class="container-fluid p-0">
+				<div class="row no-gutters">
+					<div
+						class="col-lg-6 text-white order-lg-2 showcase-img"
+						style="background-image: url('assets/img/bg-showcase-1.jpg')"
+					>
+						<span></span>
+					</div>
+					<div class="col-lg-6 my-auto order-lg-1 showcase-text">
+						<h2>Fix Text on Any Website</h2>
+						<p class="lead mb-0">
+							Fix jumbled text that have Arabic and English together like how it
+							was intended to be written.
+						</p>
+					</div>
+				</div>
+				<div class="row no-gutters">
+					<div
+						class="col-lg-6 text-white showcase-img"
+						style="background-image: url('assets/img/bg-showcase-2.jpg')"
+					>
+						<span></span>
+					</div>
+					<div class="col-lg-6 my-auto order-lg-1 showcase-text">
+						<h2>Efficient Algorithms</h2>
+						<p class="lead mb-0">
+							<br />Our fine algorithms are specifically made for almost every
+							known website to ensure the best results.<br /><br />
+						</p>
+					</div>
+				</div>
+				<div class="row no-gutters">
+					<div
+						class="col-lg-6 text-white order-lg-2 showcase-img"
+						style="background-image: url('assets/img/bg-showcase-3.jpg')"
+					>
+						<span></span>
+					</div>
+					<div class="col-lg-6 my-auto order-lg-1 showcase-text">
+						<h2>How to Use It?</h2>
+						<p class="lead mb-0">
+							1. Write your awesome text<br />2. Copy and paste it
+							<a href="#top">here</a>.<br />3. viola!
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+		<footer class="bg-light footer">
+			<div class="container">
+				<div class="row">
+					<div class="col-lg-6 text-center text-lg-left my-auto h-100">
+						<ul class="list-inline mb-2">
+							<li class="list-inline-item"></li>
+							<li class="list-inline-item"></li>
+							<li class="list-inline-item">
+								<a href="https://badawyii.com/" target="_blank">Contact</a>
+							</li>
+							<li class="list-inline-item"><span>⋅</span></li>
+							<li class="list-inline-item">
+								<a href="terms.html" target="./terms">Terms of &nbsp;Use</a>
+							</li>
+							<li class="list-inline-item"></li>
+							<li class="list-inline-item"></li>
+						</ul>
+						<p class="text-muted small mb-4 mb-lg-0">
+							© TextFixer2021. All Rights Reserved.
+						</p>
+					</div>
+					<div class="col-lg-6 text-center text-lg-right my-auto h-100">
+						<ul class="list-inline mb-0">
+							<li class="list-inline-item">
+								<a
+									href="https://www.facebook.com/Bastrma.hunter"
+									target="_blank"
+									><i class="fa fa-facebook fa-2x fa-fw"></i
+								></a>
+							</li>
+							<li class="list-inline-item">
+								<a
+									href="https://www.linkedin.com/in/mohamed-b-063a58138/"
+									target="_blank"
+									><i class="fa fa-linkedin fa-2x fa-fw"></i
+								></a>
+							</li>
+							<li class="list-inline-item">
+								<a href="https://github.com/humonidtyphoon" target="_blank"
+									><i class="fa fa-github fa-2x fa-fw"></i
+								></a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</footer>
+		<script src="assets/js/jquery.min.js"></script>
+		<script src="assets/bootstrap/js/bootstrap.min.js"></script>
+		<script src="assets/js/bs-init.js"></script>
+	</body>
+</html>

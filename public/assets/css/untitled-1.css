@@ -1,0 +1,25 @@
+@media (min-width:576px) {
+  .container, .container-sm {
+    max-width: 100%;
+  }
+}
+
+.col-md-10.col-lg-8.col-xl-6.offset-xl-3 {
+}
+
+@media (min-width: 768px) {
+  .col {
+    /*-ms-flex: 0 0 100%;*/
+    /*flex: 0 0 100%;*/
+    /*max-width: 100%;*/
+  }
+}
+
+@media (min-width: 768px) {
+  .col {
+    /*-ms-flex: 0 0 100%;*/
+    /*flex: 0 0 100%;*/
+    /*max-width: 100%;*/
+  }
+}
+
