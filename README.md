@@ -18,6 +18,7 @@ for Arabic speaking users.
 
 * Mohamed Badawy
 * Eslam Ismael
+* Ramy Gamal
 
 ## License
 
